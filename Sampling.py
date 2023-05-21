@@ -1,4 +1,5 @@
 import networkx as nx
+import pandas as pd
 import timeit
 import json
 import random
@@ -38,6 +39,12 @@ def sample_graph(num_files=15,**kwargs):
         path = kwargs.get('path')
     files = random.sample([x for x in os.listdir(path)],num_files)
     
+    # timestamp_threshold = pd.Timestamp("2017-09-15 00:00:00") # 75% data -- 249413 playlists in test set
+    timestamp_threshold = pd.Timestamp('2017-10-03T00:00:00.000000000') # 80% data -- 198144 playlists in test set
+    # timestamp_threshold = pd.Timestamp("2017-10-01 00:00:00") # last month only -- 205220 playlists in test set
+    # timestamp_threshold = pd.Timestamp("2017-10-31 00:00:00") # last day only -- 4372 playlists in test set
+    test_playlists = []
+    
     #TODO: directed switch?
     G = nx.Graph()
     for i,file in enumerate(files):
@@ -45,6 +52,11 @@ def sample_graph(num_files=15,**kwargs):
             tmp = json.load(read_file)
             for playlist in tmp["playlists"]:
                 #TODO: ignore newer switch?
+                if kwargs.get('testSplit') == True:
+                    if (playlist["modified_at"] > timestamp_threshold):
+                        test_playlists.append(playlist)
+                        continue
+
                 G.add_node(playlist["pid"], playlist_name=playlist["name"], TYPE="PLAYLIST", modified_at=playlist["modified_at"])
                 for track in playlist["tracks"]:
                     track_id = track["track_uri"][trim_start:]
@@ -81,5 +93,7 @@ def sample_graph(num_files=15,**kwargs):
         print()
         print('Time elapsed:', (timer_stop - timer_start)//60, "min ", time_elapsed % 60, "sec")  
         print(f"n:{G.number_of_nodes()}, m:{G.number_of_edges()}; ")
-        
+    
+    if kwargs.get('testSplit') == True:
+        return (G, test_playlists)
     return G
