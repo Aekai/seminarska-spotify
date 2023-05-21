@@ -33,16 +33,19 @@ def sample_graph(num_files=15,**kwargs):
         timer_start = timeit.default_timer()
        
     trim_start = len("spotify:")
-    files = random.sample([x for x in os.listdir("./DATA/")],num_files)
+    path = "./DATA/"
+    if kwargs.get('path') is not None:
+        path = kwargs.get('path')
+    files = random.sample([x for x in os.listdir(path)],num_files)
     
     #TODO: directed switch?
     G = nx.Graph()
     for i,file in enumerate(files):
-        with open(f"./DATA/{file}") as read_file:
+        with open(f"{path}{file}") as read_file:
             tmp = json.load(read_file)
             for playlist in tmp["playlists"]:
                 #TODO: ignore newer switch?
-                G.add_node(playlist["pid"], playlist_name=playlist["name"], TYPE="PLAYLIST")
+                G.add_node(playlist["pid"], playlist_name=playlist["name"], TYPE="PLAYLIST", modified_at=playlist["modified_at"])
                 for track in playlist["tracks"]:
                     track_id = track["track_uri"][trim_start:]
                     G.add_node(track_id, track_name=track["track_name"], artist_name=track["artist_name"], TYPE="TRACK")
@@ -68,13 +71,15 @@ def sample_graph(num_files=15,**kwargs):
                 time_elapsed = timeit.default_timer() - timer_start
                 mins_elapsed = (time_elapsed)//60
                 secs_elapsed = time_elapsed % 60
-                print(f"{i+1}/{len(files)}; n:{G.number_of_nodes()}, m:{G.number_of_edges()}; time elapsed: {mins_elapsed:02.1f} min {secs_elapsed:02.1f} sec", end="\r")
+                print(f"{i+1}/{len(files)}; time elapsed: {mins_elapsed:02.1f} min {secs_elapsed:02.1f} sec", end="\r")
                     
                     
                     
                 
     if kwargs.get('verbose') == True:
         timer_stop = timeit.default_timer()
-        print('Time elapsed (minutes):', (timer_stop - timer_start)/60)  
+        print()
+        print('Time elapsed:', (timer_stop - timer_start)//60, "min ", time_elapsed % 60, "sec")  
+        print(f"n:{G.number_of_nodes()}, m:{G.number_of_edges()}; ")
         
     return G
