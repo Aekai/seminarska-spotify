@@ -3,6 +3,7 @@ import pandas as pd
 import timeit
 import json
 import random
+import datetime
 import pickle
 import os
 
@@ -53,7 +54,7 @@ def sample_graph(num_files=15,**kwargs):
             for playlist in tmp["playlists"]:
                 #TODO: ignore newer switch?
                 if kwargs.get('testSplit') == True:
-                    if (playlist["modified_at"] > timestamp_threshold):
+                    if (datetime.datetime.fromtimestamp(playlist["modified_at"]) > timestamp_threshold):
                         test_playlists.append(playlist)
                         continue
 
@@ -97,3 +98,17 @@ def sample_graph(num_files=15,**kwargs):
     if kwargs.get('testSplit') == True:
         return (G, test_playlists)
     return G
+
+def get_modified_at_array(G, print_hist=False):
+    playlist_times = []
+    for node in G.nodes():
+        if type(node) == int:
+            playlist_times.append(G.nodes[node]["modified_at"])
+    
+    ser = pd.Series(playlist_times)
+    ser = pd.to_datetime(ser, unit='s')
+
+    if (print_hist==True):
+        ser.hist(xrot=90, bins=20)
+
+    return ser
