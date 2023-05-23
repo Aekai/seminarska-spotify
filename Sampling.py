@@ -112,3 +112,11 @@ def get_modified_at_array(G, print_hist=False):
         ser.hist(xrot=90, bins=20)
 
     return ser
+
+def truncate_playlists(playlists):
+    new_playlists = list()
+    for playlist in playlists:
+        new_playlist = list({'name': f"{i['artist_name']} - {i['track_name']}", 'track_uri': i['track_uri'][len("spotify:"):]} for i in playlist['tracks'])
+        new_playlists.append(new_playlist)
+        
+    return new_playlists
