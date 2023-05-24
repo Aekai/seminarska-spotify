@@ -4,3 +4,4 @@ spotify_million_playlist_dataset_challenge
 spotify_million_playlist_dataset
 DATA
 pickledata
+__pycache__

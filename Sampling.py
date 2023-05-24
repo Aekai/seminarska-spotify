@@ -1,5 +1,6 @@
 import networkx as nx
 import pandas as pd
+import numpy as np
 import timeit
 import json
 import random
@@ -41,9 +42,9 @@ def sample_graph(num_files=15,**kwargs):
     files = random.sample([x for x in os.listdir(path)],num_files)
     
     # timestamp_threshold = pd.Timestamp("2017-09-15 00:00:00") # 75% data -- 249413 playlists in test set
-    timestamp_threshold = pd.Timestamp('2017-10-03T00:00:00.000000000') # 80% data -- 198144 playlists in test set
+    # timestamp_threshold = pd.Timestamp('2017-10-03T00:00:00.000000000') # 80% data -- 198144 playlists in test set
     # timestamp_threshold = pd.Timestamp("2017-10-01 00:00:00") # last month only -- 205220 playlists in test set
-    # timestamp_threshold = pd.Timestamp("2017-10-31 00:00:00") # last day only -- 4372 playlists in test set
+    timestamp_threshold = pd.Timestamp("2017-10-31 00:00:00") # last day only -- 4372 playlists in test set
     test_playlists = []
     
     #TODO: directed switch?
@@ -96,7 +97,10 @@ def sample_graph(num_files=15,**kwargs):
         print(f"n:{G.number_of_nodes()}, m:{G.number_of_edges()}; ")
     
     if kwargs.get('testSplit') == True:
+        print(len(test_playlists), "test playlists; mean len:", np.mean([len(i) for i in test_playlists]))
+        print("num test playlists with len > 9:", len([1 for i in test_playlists if len(i) > 9]))
         return (G, test_playlists)
+
     return G
 
 def get_modified_at_array(G, print_hist=False):
@@ -118,5 +122,5 @@ def truncate_playlists(playlists):
     for playlist in playlists:
         new_playlist = list({'name': f"{i['artist_name']} - {i['track_name']}", 'track_uri': i['track_uri'][len("spotify:"):]} for i in playlist['tracks'])
         new_playlists.append(new_playlist)
-        
+    
     return new_playlists
